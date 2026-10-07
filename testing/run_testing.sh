@@ -57,18 +57,37 @@ if [ ! -f "$TARGET" ]; then
     exit 1
 fi
 
-if [ "$RAVE_EMULATION" -eq 1 ]; then
-    if [ "$SDV_TRACING" -eq 1 ]; then
-        echo "Running with trace_rave_1_0..."
-        trace_rave_1_0 ./$TARGET 8 8 8 $THREADS results_test
+# Define test sizes
+SIZES=(
+    # "8 8 8"
+    "16 8 8"
+    # "16 16 16"
+    # "32 32 32"
+    # "16 8 24"
+    # "64 64 64"
+)
+
+for size in "${SIZES[@]}"; do
+    read -r nx ny nz <<< "$size"
+
+    out_dir="results_test_${nx}_${ny}_${nz}"
+    echo "----------------------------------------"
+    echo "  Running size: $nx x $ny x $nz"
+    echo "----------------------------------------"
+
+    if [ "$RAVE_EMULATION" -eq 1 ]; then
+        if [ "$SDV_TRACING" -eq 1 ]; then
+            echo "Running with trace_rave_1_0..."
+            trace_rave_1_0 ./$TARGET $nx $ny $nz $THREADS $out_dir
+        else
+            echo "Running with rave..."
+            rave ./$TARGET $nx $ny $nz $THREADS $out_dir
+        fi
     else
-        echo "Running with rave..."
-        rave ./$TARGET 8 8 8 $THREADS results_test
+        echo "Running natively..."
+        ./$TARGET $nx $ny $nz $THREADS $out_dir
     fi
-else
-    echo "Running natively..."
-    ./$TARGET 8 8 8 $THREADS results_test
-fi
+done
 
 echo "========================================="
 echo "  Script finished."

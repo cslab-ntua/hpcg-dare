@@ -1,7 +1,11 @@
 # Run from testing/: make -j; make run
 # Real RVV kernels: build/run on a compatible RISC-V machine.
-CXX = g++
-RVV_FLAGS ?= -march=rv64gcv -mabi=lp64d
+# CXX = g++
+CXX          = clang++
+
+# RVV_FLAGS ?= -march=rv64gcv -mabi=lp64d
+RVV_FLAGS ?= -mcpu=avispado -mepi
+
 CXXFLAGS ?= -O3
 # GCC defaults. For clang++, override with:
 # SCALAR_FLAGS='-fno-vectorize -fno-slp-vectorize'
@@ -33,8 +37,14 @@ OBJECTS := $(BUILD_DIR)/main.o $(addprefix $(BUILD_DIR)/,$(addsuffix .o,$(SOURCE
 REFERENCE_NAMES := ComputeDotProduct_ref ComputeWAXPBY_ref ComputeSPMV_ref \
  ComputeSYMGS_ref ComputeRestriction_ref ComputeProlongation_ref ComputeMG_ref CG_ref
 REFERENCE_OBJECTS := $(addprefix $(BUILD_DIR)/,$(addsuffix .o,$(REFERENCE_NAMES)))
-COMMON_FLAGS = $(RVV_FLAGS) -std=c++11 $(OMP_FLAGS) -fno-fast-math -ffp-contract=off
-INCLUDE_FLAGS = -I../src -DHPCG_NO_MPI $(OMP_DEFS)
+EPI_WORKAROUNDS = -fno-lto -fmacro-backtrace-limit=0 -flax-vector-conversions \
+                  -Wno-vla-cxx-extension -Xclang -target-feature -Xclang +does-not-implement-vszext \
+                  -Xclang -target-feature -Xclang +does-not-implement-tu
+# COMMON_FLAGS = $(RVV_FLAGS) -std=c++11 $(OMP_FLAGS) -fno-fast-math -ffp-contract=off
+COMMON_FLAGS = $(RVV_FLAGS) -std=c++11 $(OMP_FLAGS) -ffast-math -fno-slp-vectorize $(EPI_WORKAROUNDS)
+
+# INCLUDE_FLAGS = -I../src -DHPCG_NO_MPI $(OMP_DEFS)
+INCLUDE_FLAGS = -I../src -DHPCG_NO_MPI -DHPCG_CONTIGUOUS_ARRAYS -DHPCG_DEBUG $(OMP_DEFS)
 
 ifeq ($(RAVE_EMULATION), 1)
 ifeq ($(SDV_TRACING), 1)
@@ -54,7 +64,7 @@ $(BUILD_DIR):
 $(REFERENCE_OBJECTS): EXTRA_FLAGS = $(SCALAR_FLAGS)
 
 $(BUILD_DIR)/main.o: main.cpp Makefile | $(BUILD_DIR)
-	$(CXX) $(CPPFLAGS) $(INCLUDE_FLAGS) $(CXXFLAGS) $(COMMON_FLAGS) -MMD -MP -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(INCLUDE_FLAGS) $(CXXFLAGS) $(COMMON_FLAGS) $(SCALAR_FLAGS) -MMD -MP -c $< -o $@
 
 $(BUILD_DIR)/%.o: ../src/%.cpp Makefile | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(INCLUDE_FLAGS) $(CXXFLAGS) $(COMMON_FLAGS) $(EXTRA_FLAGS) -MMD -MP -c $< -o $@
