@@ -9,7 +9,9 @@
 #ifndef HPCG_NO_OPENMP
 #include <omp.h>
 #endif
-#include <sdv_tracing.h>
+#ifdef SDV_TRACING
+  #include "sdv_tracing.h"
+#endif
 #include "hpcg.hpp"
 #include "GenerateGeometry.hpp"
 #include "GenerateProblem_ref.hpp"
@@ -23,7 +25,9 @@
 #include "ComputeSPMV_ref.hpp"
 #include "ComputeSYMGS.hpp"
 #include "ComputeSYMGS_ref.hpp"
+#include "ComputeRestriction.hpp"
 #include "ComputeRestriction_ref.hpp"
+#include "ComputeProlongation.hpp"
 #include "ComputeProlongation_ref.hpp"
 #include "ComputeMG.hpp"
 #include "ComputeMG_ref.hpp"
@@ -58,8 +62,11 @@ bool compare(const char *name, const std::vector<double> &ref,
 }
 
 int main(int argc, char **argv) {
-  trace_init();
-  trace_disable(); // Exclude argument parsing, setup, and reference calls.
+  #ifdef SDV_TRACING
+    // printf("SDV tracing enabled\n");
+    trace_init();
+    trace_disable(); // Exclude argument parsing, setup, and reference calls.
+  #endif
   // Accept the existing Makefile's arguments: nx ny nz threads output_directory.
   // The last argument is accepted for compatibility; outputs are saved in memory.
   int nx = 8, ny = 8, nz = 8, threads = 1;
@@ -164,63 +171,91 @@ int main(int argc, char **argv) {
   std::cout << "Vectorised kernels\n";
   bool optimized = true;
   double dot_vec = 0.0, time_vec = 0.0;
-  trace_enable();
-  trace_begin_region("DotProduct");
+  #ifdef SDV_TRACING
+    trace_enable();
+    trace_begin_region("DotProduct");
+  #endif
   int dot_vec_status = ComputeDotProduct(n, x, y, dot_vec, time_vec, optimized);
-  trace_end_region("DotProduct");
-  trace_disable();
+  #ifdef SDV_TRACING
+    trace_end_region("DotProduct");
+    trace_disable();
+  #endif
 
   ZeroVector(out_vec);
-  trace_enable();
-  trace_begin_region("WAXPBY");
+  #ifdef SDV_TRACING
+    trace_enable();
+    trace_begin_region("WAXPBY");
+  #endif
   int wax_vec_status = ComputeWAXPBY(n, 0.3, x, -0.8, y, out_vec, optimized);
-  trace_end_region("WAXPBY");
-  trace_disable();
+  #ifdef SDV_TRACING
+    trace_end_region("WAXPBY");
+    trace_disable();
+  #endif
   const std::vector<double> wax_vec = snapshot(out_vec);
 
   ZeroVector(out_vec);
-  trace_enable();
-  trace_begin_region("SPMV");
+  #ifdef SDV_TRACING
+    trace_enable();
+    trace_begin_region("SPMV");
+  #endif
   int spmv_vec_status = ComputeSPMV(A, x, out_vec);
-  trace_end_region("SPMV");
-  trace_disable();
+  #ifdef SDV_TRACING
+    trace_end_region("SPMV");
+    trace_disable();
+  #endif
   const std::vector<double> spmv_vec = snapshot(out_vec);
 
   CopyVector(x, out_vec);
-  trace_enable();
-  trace_begin_region("SYMGS");
+  #ifdef SDV_TRACING
+    trace_enable();
+    trace_begin_region("SYMGS");
+  #endif
   int symgs_vec_status = ComputeSYMGS(A, b, out_vec);
-  trace_end_region("SYMGS");
-  trace_disable();
+  #ifdef SDV_TRACING
+    trace_end_region("SYMGS");
+    trace_disable();
+  #endif
   const std::vector<double> symgs_vec = snapshot(out_vec);
 
   std::copy(axf_input.begin(), axf_input.end(), A.mgData->Axf->values);
   ZeroVector(*A.mgData->rc);
-  trace_enable();
-  trace_begin_region("Restriction");
+  #ifdef SDV_TRACING
+    trace_enable();
+    trace_begin_region("Restriction");
+  #endif
   int restriction_vec_status = ComputeRestriction(A, b);
-  trace_end_region("Restriction");
-  trace_disable();
+  #ifdef SDV_TRACING
+    trace_end_region("Restriction");
+    trace_disable();
+  #endif
   const std::vector<double> restriction_vec = snapshot(*A.mgData->rc);
 
   std::copy(xc_input.begin(), xc_input.end(), A.mgData->xc->values);
   CopyVector(x, out_vec);
-  trace_enable();
-  trace_begin_region("Prolongation");
+  #ifdef SDV_TRACING
+    trace_enable();
+    trace_begin_region("Prolongation");
+  #endif
   int prolongation_vec_status = ComputeProlongation(A, out_vec);
-  trace_end_region("Prolongation");
-  trace_disable();
+  #ifdef SDV_TRACING
+    trace_end_region("Prolongation");
+    trace_disable();
+  #endif
   const std::vector<double> prolongation_vec = snapshot(out_vec);
 
   ZeroVector(*A.mgData->rc);
   ZeroVector(*A.mgData->xc);
   ZeroVector(*A.mgData->Axf);
   ZeroVector(out_vec);
-  trace_enable();
-  trace_begin_region("MG");
+  #ifdef SDV_TRACING
+    trace_enable();
+    trace_begin_region("MG");
+  #endif
   int mg_vec_status = ComputeMG(A, b, out_vec);
-  trace_end_region("MG");
-  trace_disable();
+  #ifdef SDV_TRACING
+    trace_end_region("MG");
+    trace_disable();
+  #endif
   const std::vector<double> mg_vec = snapshot(out_vec);
 
   // 4. COMPARE THE SAVED RESULTS.

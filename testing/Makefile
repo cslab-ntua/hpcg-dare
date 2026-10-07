@@ -25,7 +25,8 @@ NZ ?= 8
 
 SOURCES := ComputeDotProduct ComputeDotProduct_ref ComputeWAXPBY ComputeWAXPBY_ref \
  ComputeSPMV ComputeSPMV_ref ComputeSYMGS ComputeSYMGS_ref \
- ComputeRestriction_ref ComputeProlongation_ref ComputeMG ComputeMG_ref CG CG_ref \
+ ComputeRestriction ComputeRestriction_ref ComputeProlongation \
+ ComputeProlongation_ref ComputeMG ComputeMG_ref CG CG_ref \
  GenerateGeometry GenerateProblem GenerateProblem_ref SetupHalo SetupHalo_ref \
  GenerateCoarseProblem ComputeOptimalShapeXYZ MixedBaseCounter mytimer
 OBJECTS := $(BUILD_DIR)/main.o $(addprefix $(BUILD_DIR)/,$(addsuffix .o,$(SOURCES)))
@@ -34,6 +35,13 @@ REFERENCE_NAMES := ComputeDotProduct_ref ComputeWAXPBY_ref ComputeSPMV_ref \
 REFERENCE_OBJECTS := $(addprefix $(BUILD_DIR)/,$(addsuffix .o,$(REFERENCE_NAMES)))
 COMMON_FLAGS = $(RVV_FLAGS) -std=c++11 $(OMP_FLAGS) -fno-fast-math -ffp-contract=off
 INCLUDE_FLAGS = -I../src -DHPCG_NO_MPI $(OMP_DEFS)
+
+ifeq ($(RAVE_EMULATION), 1)
+ifeq ($(SDV_TRACING), 1)
+COMMON_FLAGS += -DSDV_TRACING $(SDV_TRACE_INCL)
+LDFLAGS += $(SDV_TRACE_C_LINK)
+endif
+endif
 
 .PHONY: all run test clean
 all: $(TARGET)

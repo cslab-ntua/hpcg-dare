@@ -1,0 +1,317 @@
+Running with trace_rave_1_0...
+Reference kernels
+Vectorised kernels
+PASS DotProduct max_abs_error=8.88178e-15
+PASS WAXPBY max_abs_error=2.22045e-16
+PASS SPMV max_abs_error=0
+PASS SYMGS max_abs_error=3.33067e-16
+PASS Restriction max_abs_error=0
+PASS Prolongation max_abs_error=0
+PASS MG max_abs_error=3.33067e-16
+7 comparisons, 0 failures
+------------------- REPORT -------------------
+Region #0: GLOBAL_REGION (Rank: all, Thread: all). Executed 1 times
+    └─ Counters:
+         ├─ Moved bytes: 11985821
+         │    ├─ Scalar: 10024765 (83.64%)
+         │    └─ Vector: 1961056 (16.36%)
+         ├─ FLOPs: 378004
+         │    ├─ Scalar: 287940 (76.17%)
+         │    └─ Vector: 90064 (23.83%)
+         └─ Instructions: 4257477
+              ├─ Scalar instr: 4212813 (98.95%)
+              ├─ Vsetvl instr: 4827 (0.11%)
+              └─ Vector instr: 39837 (0.94%)
+                   ├─ SEW 8 vector instr: 2 (0.01%) [avg VL: 16.00 elems]
+                   │    ├─ Arith: 0
+                   │    ├─ Reduction: 0
+                   │    ├─ Memory: 2 (100.00%) [avg VL: 16.00 elems]
+                   │    │    ├─ unit: 2 (100.00%)
+                   │    │    ├─ strided: 0
+                   │    │    ├─ indexed: 0
+                   │    │    └─ whole-register: 0
+                   │    ├─ Mask: 0
+                   │    └─ Other: 0
+                   ├─ SEW 16 vector instr: 0
+                   ├─ SEW 32 vector instr: 5384 (13.52%) [avg VL: 20.57 elems]
+                   │    ├─ Arith: 576 (10.70%) [avg VL: 20.22 elems]
+                   │    │    ├─ FP: 0
+                   │    │    └─ INT: 576 (100.00%)
+                   │    ├─ Reduction: 0
+                   │    ├─ Memory: 4804 (89.23%) [avg VL: 20.63 elems]
+                   │    │    ├─ unit: 4804 (100.00%)
+                   │    │    ├─ strided: 0
+                   │    │    ├─ indexed: 0
+                   │    │    └─ whole-register: 0
+                   │    ├─ Mask: 0
+                   │    └─ Other: 4 (0.07%) [avg VL: 2.00 elems]
+                   └─ SEW 64 vector instr: 34451 (86.48%) [avg VL: 21.00 elems]
+                        ├─ Arith: 8465 (24.57%) [avg VL: 20.86 elems]
+                        │    ├─ FP: 4235 (50.03%)
+                        │    └─ INT: 4230 (49.97%)
+                        ├─ Reduction: 4225 (12.26%) [avg VL: 20.70 elems]
+                        │    ├─ FP: 4225 (100.00%)
+                        │    └─ INT: 0
+                        ├─ Memory: 9075 (26.34%) [avg VL: 21.55 elems]
+                        │    ├─ unit: 4843 (53.37%)
+                        │    ├─ strided: 0
+                        │    ├─ indexed: 4232 (46.63%)
+                        │    └─ whole-register: 0
+                        ├─ Mask: 0
+                        └─ Other: 12686 (36.82%) [avg VL: 20.78 elems]
+Region #1: DotProduct (Rank: 0, Thread: 0). Executed 1 times
+    └─ Counters:
+         ├─ Moved bytes: 23546
+         │    ├─ Scalar: 15354 (65.21%)
+         │    └─ Vector: 8192 (34.79%)
+         ├─ FLOPs: 1029
+         │    ├─ Scalar: 5 (0.49%)
+         │    └─ Vector: 1024 (99.51%)
+         └─ Instructions: 5595
+              ├─ Scalar instr: 5581 (99.75%)
+              ├─ Vsetvl instr: 4 (0.07%)
+              └─ Vector instr: 10 (0.18%)
+                   ├─ SEW 8 vector instr: 0
+                   ├─ SEW 16 vector instr: 0
+                   ├─ SEW 32 vector instr: 0
+                   └─ SEW 64 vector instr: 10 (100.00%) [avg VL: 256.00 elems]
+                        ├─ Arith: 2 (20.00%) [avg VL: 256.00 elems]
+                        │    ├─ FP: 2 (100.00%)
+                        │    └─ INT: 0
+                        ├─ Reduction: 1 (10.00%) [avg VL: 256.00 elems]
+                        │    ├─ FP: 1 (100.00%)
+                        │    └─ INT: 0
+                        ├─ Memory: 4 (40.00%) [avg VL: 256.00 elems]
+                        │    ├─ unit: 4 (100.00%)
+                        │    ├─ strided: 0
+                        │    ├─ indexed: 0
+                        │    └─ whole-register: 0
+                        ├─ Mask: 0
+                        └─ Other: 3 (30.00%) [avg VL: 256.00 elems]
+Region #2: WAXPBY (Rank: 0, Thread: 0). Executed 1 times
+    └─ Counters:
+         ├─ Moved bytes: 17724
+         │    ├─ Scalar: 5436 (30.67%)
+         │    └─ Vector: 12288 (69.33%)
+         ├─ FLOPs: 1543
+         │    ├─ Scalar: 7 (0.45%)
+         │    └─ Vector: 1536 (99.55%)
+         └─ Instructions: 1569
+              ├─ Scalar instr: 1557 (99.24%)
+              ├─ Vsetvl instr: 2 (0.13%)
+              └─ Vector instr: 10 (0.64%)
+                   ├─ SEW 8 vector instr: 0
+                   ├─ SEW 16 vector instr: 0
+                   ├─ SEW 32 vector instr: 0
+                   └─ SEW 64 vector instr: 10 (100.00%) [avg VL: 256.00 elems]
+                        ├─ Arith: 4 (40.00%) [avg VL: 256.00 elems]
+                        │    ├─ FP: 4 (100.00%)
+                        │    └─ INT: 0
+                        ├─ Reduction: 0
+                        ├─ Memory: 6 (60.00%) [avg VL: 256.00 elems]
+                        │    ├─ unit: 6 (100.00%)
+                        │    ├─ strided: 0
+                        │    ├─ indexed: 0
+                        │    └─ whole-register: 0
+                        ├─ Mask: 0
+                        └─ Other: 0
+Region #3: SPMV (Rank: 0, Thread: 0). Executed 1 times
+    └─ Counters:
+         ├─ Moved bytes: 231322
+         │    ├─ Scalar: 18362 (7.94%)
+         │    └─ Vector: 212960 (92.06%)
+         ├─ FLOPs: 12185
+         │    ├─ Scalar: 1537 (12.61%)
+         │    └─ Vector: 10648 (87.39%)
+         └─ Instructions: 19460
+              ├─ Scalar instr: 14340 (73.69%)
+              ├─ Vsetvl instr: 512 (2.63%)
+              └─ Vector instr: 4608 (23.68%)
+                   ├─ SEW 8 vector instr: 0
+                   ├─ SEW 16 vector instr: 0
+                   ├─ SEW 32 vector instr: 512 (11.11%) [avg VL: 20.80 elems]
+                   │    ├─ Arith: 0
+                   │    ├─ Reduction: 0
+                   │    ├─ Memory: 512 (100.00%) [avg VL: 20.80 elems]
+                   │    │    ├─ unit: 512 (100.00%)
+                   │    │    ├─ strided: 0
+                   │    │    ├─ indexed: 0
+                   │    │    └─ whole-register: 0
+                   │    ├─ Mask: 0
+                   │    └─ Other: 0
+                   └─ SEW 64 vector instr: 4096 (88.89%) [avg VL: 20.80 elems]
+                        ├─ Arith: 1024 (25.00%) [avg VL: 20.80 elems]
+                        │    ├─ FP: 512 (50.00%)
+                        │    └─ INT: 512 (50.00%)
+                        ├─ Reduction: 512 (12.50%) [avg VL: 20.80 elems]
+                        │    ├─ FP: 512 (100.00%)
+                        │    └─ INT: 0
+                        ├─ Memory: 1024 (25.00%) [avg VL: 20.80 elems]
+                        │    ├─ unit: 512 (50.00%)
+                        │    ├─ strided: 0
+                        │    ├─ indexed: 512 (50.00%)
+                        │    └─ whole-register: 0
+                        ├─ Mask: 0
+                        └─ Other: 1536 (37.50%) [avg VL: 20.80 elems]
+Region #4: SYMGS (Rank: 0, Thread: 0). Executed 1 times
+    └─ Counters:
+         ├─ Moved bytes: 484500
+         │    ├─ Scalar: 58580 (12.09%)
+         │    └─ Vector: 425920 (87.91%)
+         ├─ FLOPs: 25392
+         │    ├─ Scalar: 4096 (16.13%)
+         │    └─ Vector: 21296 (83.87%)
+         └─ Instructions: 42558
+              ├─ Scalar instr: 32318 (75.94%)
+              ├─ Vsetvl instr: 1024 (2.41%)
+              └─ Vector instr: 9216 (21.66%)
+                   ├─ SEW 8 vector instr: 0
+                   ├─ SEW 16 vector instr: 0
+                   ├─ SEW 32 vector instr: 1024 (11.11%) [avg VL: 20.80 elems]
+                   │    ├─ Arith: 0
+                   │    ├─ Reduction: 0
+                   │    ├─ Memory: 1024 (100.00%) [avg VL: 20.80 elems]
+                   │    │    ├─ unit: 1024 (100.00%)
+                   │    │    ├─ strided: 0
+                   │    │    ├─ indexed: 0
+                   │    │    └─ whole-register: 0
+                   │    ├─ Mask: 0
+                   │    └─ Other: 0
+                   └─ SEW 64 vector instr: 8192 (88.89%) [avg VL: 20.80 elems]
+                        ├─ Arith: 2048 (25.00%) [avg VL: 20.80 elems]
+                        │    ├─ FP: 1024 (50.00%)
+                        │    └─ INT: 1024 (50.00%)
+                        ├─ Reduction: 1024 (12.50%) [avg VL: 20.80 elems]
+                        │    ├─ FP: 1024 (100.00%)
+                        │    └─ INT: 0
+                        ├─ Memory: 2048 (25.00%) [avg VL: 20.80 elems]
+                        │    ├─ unit: 1024 (50.00%)
+                        │    ├─ strided: 0
+                        │    ├─ indexed: 1024 (50.00%)
+                        │    └─ whole-register: 0
+                        ├─ Mask: 0
+                        └─ Other: 3072 (37.50%) [avg VL: 20.80 elems]
+Region #5: Restriction (Rank: 0, Thread: 0). Executed 1 times
+    └─ Counters:
+         ├─ Moved bytes: 7175
+         │    ├─ Scalar: 5383 (75.02%)
+         │    └─ Vector: 1792 (24.98%)
+         ├─ FLOPs: 64
+         │    ├─ Scalar: 0
+         │    └─ Vector: 64 (100.00%)
+         └─ Instructions: 1517
+              ├─ Scalar instr: 1509 (99.47%)
+              ├─ Vsetvl instr: 1 (0.07%)
+              └─ Vector instr: 7 (0.46%)
+                   ├─ SEW 8 vector instr: 0
+                   ├─ SEW 16 vector instr: 0
+                   ├─ SEW 32 vector instr: 1 (14.29%) [avg VL: 64.00 elems]
+                   │    ├─ Arith: 0
+                   │    ├─ Reduction: 0
+                   │    ├─ Memory: 1 (100.00%) [avg VL: 64.00 elems]
+                   │    │    ├─ unit: 1 (100.00%)
+                   │    │    ├─ strided: 0
+                   │    │    ├─ indexed: 0
+                   │    │    └─ whole-register: 0
+                   │    ├─ Mask: 0
+                   │    └─ Other: 0
+                   └─ SEW 64 vector instr: 6 (85.71%) [avg VL: 64.00 elems]
+                        ├─ Arith: 2 (33.33%) [avg VL: 64.00 elems]
+                        │    ├─ FP: 1 (50.00%)
+                        │    └─ INT: 1 (50.00%)
+                        ├─ Reduction: 0
+                        ├─ Memory: 3 (50.00%) [avg VL: 64.00 elems]
+                        │    ├─ unit: 1 (33.33%)
+                        │    ├─ strided: 0
+                        │    ├─ indexed: 2 (66.67%)
+                        │    └─ whole-register: 0
+                        ├─ Mask: 0
+                        └─ Other: 1 (16.67%) [avg VL: 64.00 elems]
+Region #6: Prolongation (Rank: 0, Thread: 0). Executed 1 times
+    └─ Counters:
+         ├─ Moved bytes: 7103
+         │    ├─ Scalar: 5311 (74.77%)
+         │    └─ Vector: 1792 (25.23%)
+         ├─ FLOPs: 64
+         │    ├─ Scalar: 0
+         │    └─ Vector: 64 (100.00%)
+         └─ Instructions: 1505
+              ├─ Scalar instr: 1497 (99.47%)
+              ├─ Vsetvl instr: 1 (0.07%)
+              └─ Vector instr: 7 (0.47%)
+                   ├─ SEW 8 vector instr: 0
+                   ├─ SEW 16 vector instr: 0
+                   ├─ SEW 32 vector instr: 1 (14.29%) [avg VL: 64.00 elems]
+                   │    ├─ Arith: 0
+                   │    ├─ Reduction: 0
+                   │    ├─ Memory: 1 (100.00%) [avg VL: 64.00 elems]
+                   │    │    ├─ unit: 1 (100.00%)
+                   │    │    ├─ strided: 0
+                   │    │    ├─ indexed: 0
+                   │    │    └─ whole-register: 0
+                   │    ├─ Mask: 0
+                   │    └─ Other: 0
+                   └─ SEW 64 vector instr: 6 (85.71%) [avg VL: 64.00 elems]
+                        ├─ Arith: 2 (33.33%) [avg VL: 64.00 elems]
+                        │    ├─ FP: 1 (50.00%)
+                        │    └─ INT: 1 (50.00%)
+                        ├─ Reduction: 0
+                        ├─ Memory: 3 (50.00%) [avg VL: 64.00 elems]
+                        │    ├─ unit: 1 (33.33%)
+                        │    ├─ strided: 0
+                        │    ├─ indexed: 2 (66.67%)
+                        │    └─ whole-register: 0
+                        ├─ Mask: 0
+                        └─ Other: 1 (16.67%) [avg VL: 64.00 elems]
+Region #7: MG (Rank: 0, Thread: 0). Executed 1 times
+    └─ Counters:
+         ├─ Moved bytes: 1266566
+         │    ├─ Scalar: 158182 (12.49%)
+         │    └─ Vector: 1108384 (87.51%)
+         ├─ FLOPs: 65609
+         │    ├─ Scalar: 10241 (15.61%)
+         │    └─ Vector: 55368 (84.39%)
+         └─ Instructions: 113702
+              ├─ Scalar instr: 86806 (76.35%)
+              ├─ Vsetvl instr: 2690 (2.37%)
+              └─ Vector instr: 24206 (21.29%)
+                   ├─ SEW 8 vector instr: 0
+                   ├─ SEW 16 vector instr: 0
+                   ├─ SEW 32 vector instr: 2690 (11.11%) [avg VL: 20.58 elems]
+                   │    ├─ Arith: 0
+                   │    ├─ Reduction: 0
+                   │    ├─ Memory: 2690 (100.00%) [avg VL: 20.58 elems]
+                   │    │    ├─ unit: 2690 (100.00%)
+                   │    │    ├─ strided: 0
+                   │    │    ├─ indexed: 0
+                   │    │    └─ whole-register: 0
+                   │    ├─ Mask: 0
+                   │    └─ Other: 0
+                   └─ SEW 64 vector instr: 21516 (88.89%) [avg VL: 20.57 elems]
+                        ├─ Arith: 5380 (25.00%) [avg VL: 20.58 elems]
+                        │    ├─ FP: 2690 (50.00%)
+                        │    └─ INT: 2690 (50.00%)
+                        ├─ Reduction: 2688 (12.49%) [avg VL: 20.55 elems]
+                        │    ├─ FP: 2688 (100.00%)
+                        │    └─ INT: 0
+                        ├─ Memory: 5382 (25.01%) [avg VL: 20.60 elems]
+                        │    ├─ unit: 2690 (49.98%)
+                        │    ├─ strided: 0
+                        │    ├─ indexed: 2692 (50.02%)
+                        │    └─ whole-register: 0
+                        ├─ Mask: 0
+                        └─ Other: 8066 (37.49%) [avg VL: 20.56 elems]
+------------------------------------------------
+------------------- PROFILED LOOPS (thread 0) --------------------
+Elems	Instances	Iters(avg)	it_Instr(avg)	vmix	vreg_use(avg)	Function	file:line
+318896	1600	1.0	17.0	0.00	0.09	ComputeSYMGS	Unknown:-1
+318896	1600	1.0	17.0	0.00	0.09	ComputeSYMGS	Unknown:-1
+207024	1024	1.0	17.0	0.00	0.09	ComputeSPMV	Unknown:-1
+32616	1600	1.0	16.0	0.00	0.00	ComputeSYMGS	Unknown:-1
+30424	1600	1.0	16.0	0.00	0.00	ComputeSYMGS	Unknown:-1
+--------------------------------------------------------------------------
+ trace_rave no longer keeps the RAVE PRV trace by default. You can enable it again using:
+	RAVE_PRINT_PRV=1 trace_rave_1_0 [...] 
+=========================================
+  Script finished.
+=========================================
