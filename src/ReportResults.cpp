@@ -147,8 +147,7 @@ void ReportResults(const SparseMatrix & A, int numberOfMgLevels, int numberOfCgS
     fnbytes += ((double) sizeof(double)*fNumberOfCgSets); // testnorms_data in main.cpp
 
     // Model for GenerateProblem_ref.cpp
-    // fnbytes += fnrow*sizeof(char);      // array nonzerosInRow
-    fnbytes += fnrow*sizeof(local_int_t);      // array nonzerosInRow
+    fnbytes += fnrow*sizeof(char);      // array nonzerosInRow
     fnbytes += fnrow*((double) sizeof(global_int_t*)); // mtxIndG
     fnbytes += fnrow*((double) sizeof(local_int_t*));  // mtxIndL
     fnbytes += fnrow*((double) sizeof(double*));      // matrixValues

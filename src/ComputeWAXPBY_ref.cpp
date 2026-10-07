@@ -50,19 +50,19 @@ int ComputeWAXPBY_ref(const local_int_t n, const double alpha, const Vector & x,
   double * const wv = w.values;
 
   if (alpha==1.0) {
-    #ifndef HPCG_NO_OPENMP
+#ifndef HPCG_NO_OPENMP
     #pragma omp parallel for
-    #endif
+#endif
     for (local_int_t i=0; i<n; i++) wv[i] = xv[i] + beta * yv[i];
   } else if (beta==1.0) {
-    #ifndef HPCG_NO_OPENMP
+#ifndef HPCG_NO_OPENMP
     #pragma omp parallel for
-    #endif
+#endif
     for (local_int_t i=0; i<n; i++) wv[i] = alpha * xv[i] + yv[i];
   } else  {
-    #ifndef HPCG_NO_OPENMP
+#ifndef HPCG_NO_OPENMP
     #pragma omp parallel for
-    #endif
+#endif
     for (local_int_t i=0; i<n; i++) wv[i] = alpha * xv[i] + beta * yv[i];
   }
 

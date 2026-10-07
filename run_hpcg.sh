@@ -1,10 +1,21 @@
-# #!/bin/bash
+#!/bin/bash
+# Banana
 module load llvm/EPI-development
+
+# Pioneer
+# module load llvm/EPI-0.7-development
+
+# RAVE emulation
+# module load llvm/cross/EPI-development
+# module load rave/development/EPI
+# module load sdv_trace/development
 
 # --- Configuration ---
 BUILD_CONFIG="CLANG_OMP"
+# BUILD_CONFIG="CLANG_OMP_PIONEER"
 # THREADS_TO_TEST=(1 2 4 8)
 THREADS_TO_TEST=(8)
+# THREADS_TO_TEST=(1)
 MAX_THREADS=8 # Used for GOMP_CPU_AFFINITY
 
 # Define the absolute path to the main HPCG directory
@@ -63,6 +74,8 @@ for threads in "${THREADS_TO_TEST[@]}"; do
     # and also to the console (using tee) for easier viewing.
     # The actual output of ./xhpcg goes to stdout.
     { time ./xhpcg ; } 2>&1 | tee "hpcg_run_${threads}_threads.log"
+    # { time trace_rave_1_0 ./xhpcg ; } 2>&1 | tee "hpcg_run_${threads}_threads.log"
+    # time rave ./xhpcg 2>&1
 
     echo "  Completed run with $threads threads."
 done

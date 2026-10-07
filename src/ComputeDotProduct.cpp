@@ -19,10 +19,11 @@
  */
 
 #include "ComputeDotProduct.hpp"
-#include "ComputeDotProduct_ref.hpp"
-#include <stdio.h>
+// #include "ComputeDotProduct_ref.hpp"
 #include <riscv_vector.h>
 #include <omp.h>
+#include <assert.h>
+
 /*!
   Routine to compute the dot product of two vectors.
 
@@ -42,10 +43,10 @@
 */
 int ComputeDotProduct(const local_int_t n, const Vector & x, const Vector & y,
     double & result, double & time_allreduce, bool & isOptimized) {
+
   // This line and the next two lines should be removed and your version of ComputeDotProduct should be used.
   // isOptimized = false;
   // return ComputeDotProduct_ref(n, x, y, result, time_allreduce);
-
 
   isOptimized = true;
   double * xv = x.values;

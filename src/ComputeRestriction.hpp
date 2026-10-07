@@ -12,9 +12,9 @@
 // ***************************************************
 //@HEADER
 
-#ifndef COMPUTEPROLONGATION_REF_HPP
-#define COMPUTEPROLONGATION_REF_HPP
+#ifndef COMPUTERESTRICTION_HPP
+#define COMPUTERESTRICTION_HPP
 #include "Vector.hpp"
 #include "SparseMatrix.hpp"
-int ComputeProlongation_ref(const SparseMatrix & Af, Vector & xf);
-#endif // COMPUTEPROLONGATION_REF_HPP
+int ComputeRestriction(const SparseMatrix & A, const Vector & rf);
+#endif // COMPUTERESTRICTION_HPP

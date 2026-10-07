@@ -31,7 +31,7 @@
   @param[in]    A The known system matrix
   @param[inout] x On entry: the local vector entries followed by entries to be communicated; on exit: the vector with non-local entries updated by other processors
  */
-void ExchangeHalo(const SparseMatrix & A, Vector & x, int is_first) {
+void ExchangeHalo(const SparseMatrix & A, Vector & x) {
 
   // Extract Matrix pieces
 
@@ -50,8 +50,6 @@ void ExchangeHalo(const SparseMatrix & A, Vector & x, int is_first) {
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  if (!num_neighbors) return;
-
   //
   //  first post receives, these are immediate receives
   //  Do not wait for result to come, will do that at the
@@ -60,8 +58,7 @@ void ExchangeHalo(const SparseMatrix & A, Vector & x, int is_first) {
 
   int MPI_MY_TAG = 99;
 
-  // MPI_Request * request = new MPI_Request[num_neighbors];
-  MPI_Request * request = new MPI_Request[2*num_neighbors];
+  MPI_Request * request = new MPI_Request[num_neighbors];
 
   //
   // Externals are at end of locals
@@ -72,11 +69,7 @@ void ExchangeHalo(const SparseMatrix & A, Vector & x, int is_first) {
   // TODO: Thread this loop
   for (int i = 0; i < num_neighbors; i++) {
     local_int_t n_recv = receiveLength[i];
-    // MPI_Irecv(x_external, n_recv, MPI_DOUBLE, neighbors[i], MPI_MY_TAG, MPI_COMM_WORLD, request+i);
-    if (!is_first)
-      MPI_Irecv(x_external, n_recv, MPI_DOUBLE, neighbors[i], MPI_MY_TAG, MPI_COMM_WORLD, request+i);
-    else
-      std::memset(x_external, 0, sizeof(double)*n_recv);
+    MPI_Irecv(x_external, n_recv, MPI_DOUBLE, neighbors[i], MPI_MY_TAG, MPI_COMM_WORLD, request+i);
     x_external += n_recv;
   }
 
@@ -93,34 +86,22 @@ void ExchangeHalo(const SparseMatrix & A, Vector & x, int is_first) {
   //
 
   // TODO: Thread this loop
-  if (!is_first) {
-    for (int i = 0; i < num_neighbors; i++) {
-      local_int_t n_send = sendLength[i];
-      //MPI_Send(sendBuffer, n_send, MPI_DOUBLE, neighbors[i], MPI_MY_TAG, MPI_COMM_WORLD);
-      MPI_Isend(sendBuffer, n_send, MPI_DOUBLE, neighbors[i], MPI_MY_TAG, MPI_COMM_WORLD, request+num_neighbors+i);
-      sendBuffer += n_send;
-    }
+  for (int i = 0; i < num_neighbors; i++) {
+    local_int_t n_send = sendLength[i];
+    MPI_Send(sendBuffer, n_send, MPI_DOUBLE, neighbors[i], MPI_MY_TAG, MPI_COMM_WORLD);
+    sendBuffer += n_send;
   }
 
   //
   // Complete the reads issued above
   //
 
-  if (!is_first) {
-#if 0
-    MPI_Status status;
-    // TODO: Thread this loop
-    for (int i = 0; i < num_neighbors; i++) {
-      if (MPI_Wait(request+i, &status) ) {
-        std::exit(-1); // TODO: have better error exit
-      }
-    }
-#else
-    MPI_Status status[2*num_neighbors];
-    if (MPI_Waitall(2*num_neighbors, request, status) ) {
+  MPI_Status status;
+  // TODO: Thread this loop
+  for (int i = 0; i < num_neighbors; i++) {
+    if ( MPI_Wait(request+i, &status) ) {
       std::exit(-1); // TODO: have better error exit
     }
-#endif
   }
 
   delete [] request;

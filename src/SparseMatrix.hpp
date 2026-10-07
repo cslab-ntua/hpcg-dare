@@ -44,8 +44,7 @@ struct SparseMatrix_STRUCT {
   local_int_t localNumberOfRows; //!< number of rows local to this process
   local_int_t localNumberOfColumns;  //!< number of columns local to this process
   local_int_t localNumberOfNonzeros;  //!< number of nonzeros local to this process
-  //char  * nonzerosInRow;  //!< The number of nonzeros in a row will always be 27 or fewer
-  local_int_t  * nonzerosInRow; //!< The number of nonzeros in a row will always be 27 or fewer
+  char  * nonzerosInRow;  //!< The number of nonzeros in a row will always be 27 or fewer
   global_int_t ** mtxIndG; //!< matrix indices as global values
   local_int_t ** mtxIndL; //!< matrix indices as local values
   double ** matrixValues; //!< values of matrix entries
@@ -138,17 +137,10 @@ inline void CopyMatrixDiagonal(SparseMatrix & A, Vector & diagonal) {
   @param[in] diagonal  Vector of diagonal values that will replace existing matrix diagonal values.
  */
 inline void ReplaceMatrixDiagonal(SparseMatrix & A, Vector & diagonal) {
-  double ** curDiagA = A.matrixDiagonal;
-  double * dv = diagonal.values;
-  
-  // void Optimize_ReplaceMatrixDiagonal(SparseMatrix &A, double *dv);
-
-  assert(A.localNumberOfRows==diagonal.localLength);
-  for (local_int_t i=0; i<A.localNumberOfRows; ++i) {
-    *(curDiagA[i]) = dv[i];
-  }
-  // Optimize_ReplaceMatrixDiagonal(A, dv);
-  
+    double ** curDiagA = A.matrixDiagonal;
+    double * dv = diagonal.values;
+    assert(A.localNumberOfRows==diagonal.localLength);
+    for (local_int_t i=0; i<A.localNumberOfRows; ++i) *(curDiagA[i]) = dv[i];
   return;
 }
 /*!

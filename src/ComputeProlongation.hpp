@@ -12,9 +12,9 @@
 // ***************************************************
 //@HEADER
 
-#ifndef COMPUTEPROLONGATION_REF_HPP
-#define COMPUTEPROLONGATION_REF_HPP
+#ifndef COMPUTEPROLONGATION_HPP
+#define COMPUTEPROLONGATION_HPP
 #include "Vector.hpp"
 #include "SparseMatrix.hpp"
-int ComputeProlongation_ref(const SparseMatrix & Af, Vector & xf);
-#endif // COMPUTEPROLONGATION_REF_HPP
+int ComputeProlongation(const SparseMatrix & Af, Vector & xf);
+#endif // COMPUTEPROLONGATION_HPP

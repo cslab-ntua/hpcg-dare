@@ -72,9 +72,9 @@ using std::endl;
 */
 int main(int argc, char * argv[]) {
 
-  #ifndef HPCG_NO_MPI
-    MPI_Init(&argc, &argv);
-  #endif
+#ifndef HPCG_NO_MPI
+  MPI_Init(&argc, &argv);
+#endif
 
   HPCG_Params params;
 
@@ -86,19 +86,18 @@ int main(int argc, char * argv[]) {
 
   int size = params.comm_size, rank = params.comm_rank; // Number of MPI processes, My process ID
 
-  #ifdef HPCG_DETAILED_DEBUG
-    if (size < 100 && rank==0)
-      HPCG_fout << "Process "<<rank<<" of "<<size<<" is alive with " << params.numThreads << " threads." <<endl;
+#ifdef HPCG_DETAILED_DEBUG
+  if (size < 100 && rank==0) HPCG_fout << "Process "<<rank<<" of "<<size<<" is alive with " << params.numThreads << " threads." <<endl;
 
-    // if (rank==0) {
-    //   char c;
-    //   std::cout << "Press key to continue"<< std::endl;
-    //   std::cin.get(c);
-    // }
-    #ifndef HPCG_NO_MPI
-      MPI_Barrier(MPI_COMM_WORLD);
-    #endif
-  #endif
+  if (rank==0) {
+    char c;
+    std::cout << "Press key to continue"<< std::endl;
+    std::cin.get(c);
+  }
+#ifndef HPCG_NO_MPI
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
+#endif
 
   local_int_t nx,ny,nz;
   nx = (local_int_t)params.nx;
@@ -115,9 +114,9 @@ int main(int argc, char * argv[]) {
   // Problem setup Phase //
   /////////////////////////
 
-  #ifdef HPCG_DEBUG
+#ifdef HPCG_DEBUG
   double t1 = mytimer();
-  #endif
+#endif
 
   // Construct the geometry and linear system
   Geometry * geom = new Geometry;
@@ -220,17 +219,17 @@ int main(int argc, char * argv[]) {
     if (ierr) HPCG_fout << "Error in call to MG: " << ierr << ".\n" << endl;
   }
   times[8] = (mytimer() - t_begin)/((double) numberOfCalls);  // Total time divided by number of calls.
-  #ifdef HPCG_DEBUG
+#ifdef HPCG_DEBUG
   if (rank==0) HPCG_fout << "Total SpMV+MG timing phase execution time in main (sec) = " << mytimer() - t1 << endl;
-  #endif
+#endif
 
   ///////////////////////////////
   // Reference CG Timing Phase //
   ///////////////////////////////
 
-  #ifdef HPCG_DEBUG
+#ifdef HPCG_DEBUG
   t1 = mytimer();
-  #endif
+#endif
   int global_failure = 0; // assume all is well: no failures
 
   int niters = 0;
@@ -239,33 +238,22 @@ int main(int argc, char * argv[]) {
   double normr0 = 0.0;
   int refMaxIters = 50;
   numberOfCalls = 1; // Only need to run the residual reduction analysis once
+
+  // Compute the residual reduction for the natural ordering and reference kernels
+  std::vector< double > ref_times(9,0.0);
+  double tolerance = 0.0; // Set tolerance to zero to make all runs do maxIters iterations
   int err_count = 0;
+  for (int i=0; i< numberOfCalls; ++i) {
+    ZeroVector(x);
 
-  printf("12 - ReadCachedRefTolerance\n");
-  double refTolerance = ReadCachedRefTolerance(A);
-  printf("12 - ReadCachedRefTolerance\n");
-
-  if (refTolerance < 0) { // cached tolerance not found
-    // Compute the residual reduction for the natural ordering and reference kernels
-    std::vector< double > ref_times(9,0.0);
-    double tolerance = 0.0; // Set tolerance to zero to make all runs do maxIters iterations
-    int err_count = 0;
-    for (int i=0; i< numberOfCalls; ++i) {
-      ZeroVector(x);
-      printf("12 - CG_ref call - START - call %d\n", i);
-      ierr = CG_ref( A, data, b, x, refMaxIters, tolerance, niters, normr, normr0, &ref_times[0], true);
-      printf("12 - CG_ref call - FINISH - call %d\n", i);
-      if (ierr) ++err_count; // count the number of errors in CG
-      totalNiters_ref += niters;
-    }
-    if (rank == 0 && err_count) HPCG_fout << err_count << " error(s) in call(s) to reference CG." << endl;
-    double refTolerance = normr / normr0;
-
-    printf("12 - Writing cached refTolerance value %e to file for next run\n", refTolerance);
-    printf("refTolerance = %e\n", refTolerance);
-    WriteCachedRefTolerance(A, refTolerance); // save value for next run
-    printf("12 - Finished writing cached refTolerance value to file\n");
+    printf("12 - CG_ref call - START - call %d\n", i);
+    ierr = CG_ref( A, data, b, x, refMaxIters, tolerance, niters, normr, normr0, &ref_times[0], true);
+    printf("12 - CG_ref call - FINISH - call %d\n", i);
+    if (ierr) ++err_count; // count the number of errors in CG
+    totalNiters_ref += niters;
   }
+  if (rank == 0 && err_count) HPCG_fout << err_count << " error(s) in call(s) to reference CG." << endl;
+  double refTolerance = normr / normr0;
 
   // Call user-tunable set up function.
   double t7 = mytimer();
@@ -274,46 +262,42 @@ int main(int argc, char * argv[]) {
   printf("13 - OptimizeProblem - FINISH\n");
   t7 = mytimer() - t7;
   times[7] = t7;
-  #ifdef HPCG_DEBUG
+#ifdef HPCG_DEBUG
   if (rank==0) HPCG_fout << "Total problem setup time in main (sec) = " << mytimer() - t1 << endl;
-  #endif
+#endif
 
-  #ifdef HPCG_DETAILED_DEBUG
+#ifdef HPCG_DETAILED_DEBUG
   printf("14 - WriteProblem - START\n");
   if (geom->size == 1) WriteProblem(*geom, A, b, x, xexact);
   printf("14 - WriteProblem - FINISH\n");
-  #endif
+#endif
 
 
   //////////////////////////////
   // Validation Testing Phase //
   //////////////////////////////
 
-  #ifdef HPCG_DEBUG
+#ifdef HPCG_DEBUG
   t1 = mytimer();
-  #endif
+#endif
   TestCGData testcg_data;
   testcg_data.count_pass = testcg_data.count_fail = 0;
   printf("15 - TestCG - START\n");
   TestCG(A, data, b, x, testcg_data);
   printf("15 - TestCG - FINISH\n");
 
-  // Check that it is working until here... No need to perform timing of optimized CG if tests fail.
-  // TestCG calls CG, where we use the optimized kernels.
-  //return 0;
-
   TestSymmetryData testsymmetry_data;
   printf("16 - TestSymmetry - START\n");
   TestSymmetry(A, b, xexact, testsymmetry_data);
   printf("16 - TestSymmetry - FINISH\n");
 
-  #ifdef HPCG_DEBUG
+#ifdef HPCG_DEBUG
   if (rank==0) HPCG_fout << "Total validation (TestCG and TestSymmetry) execution time in main (sec) = " << mytimer() - t1 << endl;
-  #endif
+#endif
 
-  #ifdef HPCG_DEBUG
+#ifdef HPCG_DEBUG
   t1 = mytimer();
-  #endif
+#endif
 
   //////////////////////////////
   // Optimized CG Setup Phase //
@@ -349,11 +333,12 @@ int main(int argc, char * argv[]) {
     if (current_time > opt_worst_time) opt_worst_time = current_time;
   }
 
-  #ifndef HPCG_NO_MPI
-  // Get the absolute worst time across all MPI ranks (time in CG can be different)
+#ifndef HPCG_NO_MPI
+// Get the absolute worst time across all MPI ranks (time in CG can be different)
   double local_opt_worst_time = opt_worst_time;
   MPI_Allreduce(&local_opt_worst_time, &opt_worst_time, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-  #endif
+#endif
+
 
   if (rank == 0 && err_count) HPCG_fout << err_count << " error(s) in call(s) to optimized CG." << endl;
   if (tolerance_failures) {

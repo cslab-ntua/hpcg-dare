@@ -65,7 +65,7 @@ void GenerateCoarseProblem(const SparseMatrix & Af) {
 
 
   // TODO:  This triply nested loop could be flattened or use nested parallelism
-#if 0
+#if 1
 #ifndef HPCG_NO_OPENMP
   #pragma omp parallel for
 #endif
