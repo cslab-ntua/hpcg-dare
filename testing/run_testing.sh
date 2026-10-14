@@ -1,34 +1,34 @@
 #!/bin/bash
-RAVE_EMULATION=1
-SDV_TRACING=1
 
 # Configuration options (can be overridden by env variables)
-RAVE_EMULATION=${RAVE_EMULATION:-0}
-SDV_TRACING=${SDV_TRACING:-0}
+MODE="${MODE:-qemu}" # "qemu", "rave", "banana"
 OPENMP=${OPENMP:-1}
 THREADS=${THREADS:-1}
 
 # Define root
-TESTING_ROOT="$(dirname "$0")"
+TESTING_ROOT="$(cd "$(dirname "$0")" && pwd)"
+
+QEMU_BIN="${QEMU_BIN:-${TESTING_ROOT}/../../../vec_sdv1/build/qemu-riscv64}"
+if [ ! -f "$QEMU_BIN" ] && [ -f "/workspace/vec_sdv1/build/qemu-riscv64" ]; then
+    QEMU_BIN="/workspace/vec_sdv1/build/qemu-riscv64"
+fi
+QEMU_LD_PREFIX="${QEMU_LD_PREFIX:-/usr/riscv64-linux-gnu}"
+QEMU_CPU="${QEMU_CPU:-max,vlen=1024}"
 
 echo "========================================="
 echo "  Starting Testing Build and Run Script"
-echo "  RAVE_EMULATION: $RAVE_EMULATION"
-echo "  SDV_TRACING: $SDV_TRACING"
+echo "  Mode: $MODE"
 echo "========================================="
 
-# 1. Load correct modules
-module purge || true
-
-if [ "$RAVE_EMULATION" -eq 1 ]; then
+# 1. Load modules if needed
+if [ "$MODE" = "rave" ]; then
+    module purge || true
     echo "Loading modules for RAVE Emulation..."
     module load llvm/cross/EPI-development
     module load rave/development/EPI
-    if [ "$SDV_TRACING" -eq 1 ]; then
-        echo "Loading modules for SDV Tracing..."
-        module load sdv_trace/development
-    fi
-else
+    module load sdv_trace/development
+elif [ "$MODE" = "banana" ]; then
+    module purge || true
     echo "Loading standard RISC-V toolchain (Banana)..."
     module load llvm/EPI-development
 fi
@@ -38,14 +38,20 @@ cd "$TESTING_ROOT" || { echo "Error: Could not enter TESTING_ROOT."; exit 1; }
 # 2. Build
 echo "--- 1. Building ---"
 make clean
-# Override compiler to clang++ since we loaded llvm modules
-# Also adjust SCALAR_FLAGS for clang++
-make -j all \
-    CXX=clang++ \
-    SCALAR_FLAGS='-fno-vectorize -fno-slp-vectorize' \
-    RAVE_EMULATION=$RAVE_EMULATION \
-    SDV_TRACING=$SDV_TRACING \
-    OPENMP=$OPENMP
+
+if [ "$MODE" = "qemu" ]; then
+    make -j all \
+        OCT_QEMU_EMULATION=1 \
+        CXX=riscv64-linux-gnu-g++ \
+        OPENMP=$OPENMP
+else
+    make -j all \
+        OCT_QEMU_EMULATION=0 \
+        CXX=clang++ \
+        SCALAR_FLAGS='-fno-vectorize -fno-slp-vectorize' \
+        RAVE_EMULATION=1 \
+        OPENMP=$OPENMP
+fi
 
 # 3. Run
 echo "--- 2. Running ---"
@@ -75,14 +81,12 @@ for size in "${SIZES[@]}"; do
     echo "  Running size: $nx x $ny x $nz"
     echo "----------------------------------------"
 
-    if [ "$RAVE_EMULATION" -eq 1 ]; then
-        if [ "$SDV_TRACING" -eq 1 ]; then
-            echo "Running with trace_rave_1_0..."
-            trace_rave_1_0 ./$TARGET $nx $ny $nz $THREADS $out_dir
-        else
-            echo "Running with rave..."
-            rave ./$TARGET $nx $ny $nz $THREADS $out_dir
-        fi
+    if [ "$MODE" = "qemu" ]; then
+        echo "Running under QEMU emulation..."
+        "$QEMU_BIN" -L "$QEMU_LD_PREFIX" -cpu "$QEMU_CPU" ./$TARGET $nx $ny $nz $THREADS $out_dir
+    elif [ "$MODE" = "rave" ]; then
+        echo "Running with rave..."
+        rave ./$TARGET $nx $ny $nz $THREADS $out_dir
     else
         echo "Running natively..."
         ./$TARGET $nx $ny $nz $THREADS $out_dir

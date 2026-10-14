@@ -1,15 +1,24 @@
 # Run from testing/: make -j; make run
 # Real RVV kernels: build/run on a compatible RISC-V machine.
-# CXX = g++
-CXX          = clang++
+OCT_QEMU_EMULATION ?= 1
 
-# RVV_FLAGS ?= -march=rv64gcv -mabi=lp64d
-RVV_FLAGS ?= -mcpu=avispado -mepi
+ifeq ($(OCT_QEMU_EMULATION), 1)
+    CXX ?= riscv64-linux-gnu-g++
+    RVV_FLAGS ?= -march=rv64gcv -mabi=lp64d
+    SCALAR_FLAGS ?= -fno-tree-vectorize -fno-tree-slp-vectorize
+    COMMON_FLAGS = $(RVV_FLAGS) -std=c++11 $(OMP_FLAGS) -ffast-math -fno-lto -flax-vector-conversions -fno-tree-slp-vectorize
+    LDFLAGS += -L/usr/riscv64-linux-gnu/lib
+else
+    CXX ?= clang++
+    RVV_FLAGS ?= -mcpu=avispado -mepi
+    SCALAR_FLAGS ?= -fno-vectorize -fno-slp-vectorize
+    EPI_WORKAROUNDS = -fno-lto -fmacro-backtrace-limit=0 -flax-vector-conversions \
+                      -Wno-vla-cxx-extension -Xclang -target-feature -Xclang +does-not-implement-vszext \
+                      -Xclang -target-feature -Xclang +does-not-implement-tu
+    COMMON_FLAGS = $(RVV_FLAGS) -std=c++11 $(OMP_FLAGS) -ffast-math -fno-slp-vectorize $(EPI_WORKAROUNDS)
+endif
 
 CXXFLAGS ?= -O3
-# GCC defaults. For clang++, override with:
-# SCALAR_FLAGS='-fno-vectorize -fno-slp-vectorize'
-SCALAR_FLAGS ?= -fno-tree-vectorize -fno-tree-slp-vectorize
 OPENMP ?= 1
 ifeq ($(OPENMP),1)
 OMP_FLAGS := -fopenmp
@@ -37,11 +46,6 @@ OBJECTS := $(BUILD_DIR)/main.o $(addprefix $(BUILD_DIR)/,$(addsuffix .o,$(SOURCE
 REFERENCE_NAMES := ComputeDotProduct_ref ComputeWAXPBY_ref ComputeSPMV_ref \
  ComputeSYMGS_ref ComputeRestriction_ref ComputeProlongation_ref ComputeMG_ref CG_ref
 REFERENCE_OBJECTS := $(addprefix $(BUILD_DIR)/,$(addsuffix .o,$(REFERENCE_NAMES)))
-EPI_WORKAROUNDS = -fno-lto -fmacro-backtrace-limit=0 -flax-vector-conversions \
-                  -Wno-vla-cxx-extension -Xclang -target-feature -Xclang +does-not-implement-vszext \
-                  -Xclang -target-feature -Xclang +does-not-implement-tu
-# COMMON_FLAGS = $(RVV_FLAGS) -std=c++11 $(OMP_FLAGS) -fno-fast-math -ffp-contract=off
-COMMON_FLAGS = $(RVV_FLAGS) -std=c++11 $(OMP_FLAGS) -ffast-math -fno-slp-vectorize $(EPI_WORKAROUNDS)
 
 # INCLUDE_FLAGS = -I../src -DHPCG_NO_MPI $(OMP_DEFS)
 INCLUDE_FLAGS = -I../src -DHPCG_NO_MPI -DHPCG_CONTIGUOUS_ARRAYS -DHPCG_DEBUG $(OMP_DEFS)

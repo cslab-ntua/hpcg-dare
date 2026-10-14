@@ -1,29 +1,39 @@
 #!/bin/bash
-# Banana
-module load llvm/EPI-development
-
-# Pioneer
-# module load llvm/EPI-0.7-development
-
-# RAVE emulation
-# module load llvm/cross/EPI-development
-# module load rave/development/EPI
-# module load sdv_trace/development
-
-# --- Configuration ---
-BUILD_CONFIG="CLANG_OMP"
-# BUILD_CONFIG="CLANG_OMP_PIONEER"
-# THREADS_TO_TEST=(1 2 4 8)
-THREADS_TO_TEST=(8)
-# THREADS_TO_TEST=(1)
-MAX_THREADS=8 # Used for GOMP_CPU_AFFINITY
+# --- Execution / Emulation Mode ---
+# Options: "qemu", "rave", "banana" (baremetal)
+MODE="qemu"
 
 # Define the absolute path to the main HPCG directory
-# This ensures the script works regardless of where it is called from.
-HPCG_ROOT="$(dirname "$0")"
+HPCG_ROOT="$(cd "$(dirname "$0")" && pwd)"
+
+# --- QEMU Emulation Settings ---
+QEMU_BIN="${QEMU_BIN:-${HPCG_ROOT}/../../vec_sdv1/build/qemu-riscv64}"
+if [ ! -f "$QEMU_BIN" ] && [ -f "/workspace/vec_sdv1/build/qemu-riscv64" ]; then
+    QEMU_BIN="/workspace/vec_sdv1/build/qemu-riscv64"
+fi
+QEMU_LD_PREFIX="${QEMU_LD_PREFIX:-/usr/riscv64-linux-gnu}"
+QEMU_CPU="${QEMU_CPU:-max,vlen=1024}"
+
+# --- Environment & Configuration Setup ---
+if [ "$MODE" = "qemu" ]; then
+    BUILD_CONFIG="QEMU_GCC_OMP"
+elif [ "$MODE" = "rave" ]; then
+    module load llvm/cross/EPI-development
+    module load rave/development/EPI
+    module load sdv_trace/development
+    BUILD_CONFIG="CLANG_OMP"
+elif [ "$MODE" = "banana" ]; then
+    module load llvm/EPI-development
+    BUILD_CONFIG="CLANG_OMP"
+fi
+
+# THREADS_TO_TEST=(1 2 4 8)
+THREADS_TO_TEST=(1)
+MAX_THREADS=8 # Used for GOMP_CPU_AFFINITY
 
 echo "========================================="
 echo "  Starting HPCG Build and Test Script"
+echo "  Mode: $MODE"
 echo "  Root Directory: $HPCG_ROOT"
 echo "========================================="
 
@@ -69,13 +79,14 @@ for threads in "${THREADS_TO_TEST[@]}"; do
     # Set the OMP environment variable
     export OMP_NUM_THREADS="$threads"
     
-    # Run the benchmark and time it
-    # The 'time' command outputs to stderr, so we redirect stderr to a log file 
-    # and also to the console (using tee) for easier viewing.
-    # The actual output of ./xhpcg goes to stdout.
-    { time ./xhpcg ; } 2>&1 | tee "hpcg_run_${threads}_threads.log"
-    # { time trace_rave_1_0 ./xhpcg ; } 2>&1 | tee "hpcg_run_${threads}_threads.log"
-    # time rave ./xhpcg 2>&1
+    # Run the benchmark
+    if [ "$MODE" = "qemu" ]; then
+        { time "$QEMU_BIN" -L "$QEMU_LD_PREFIX" -cpu "$QEMU_CPU" ./xhpcg ; } 2>&1 | tee "hpcg_run_${threads}_threads.log"
+    elif [ "$MODE" = "rave" ]; then
+        { time trace_rave_1_0 ./xhpcg ; } 2>&1 | tee "hpcg_run_${threads}_threads.log"
+    else
+        { time ./xhpcg ; } 2>&1 | tee "hpcg_run_${threads}_threads.log"
+    fi
 
     echo "  Completed run with $threads threads."
 done

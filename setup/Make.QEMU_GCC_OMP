@@ -1,0 +1,53 @@
+# ----------------------------------------------------------------------
+# - High Performance Conjugate Gradient Benchmark (HPCG)
+# - Architecture configuration for RISC-V QEMU Emulation with GCC
+# ----------------------------------------------------------------------
+
+SHELL        = /bin/sh
+CD           = cd
+CP           = cp
+LN_S         = ln -s -f
+MKDIR        = mkdir -p
+RM           = /bin/rm -f
+TOUCH        = touch
+
+# ----------------------------------------------------------------------
+# - HPCG Directory Structure / HPCG library ----------------------------
+# ----------------------------------------------------------------------
+TOPdir       = .
+SRCdir       = $(TOPdir)/src
+INCdir       = $(TOPdir)/src
+BINdir       = $(TOPdir)/bin
+
+# ----------------------------------------------------------------------
+# - Message Passing library (MPI) --------------------------------------
+# ----------------------------------------------------------------------
+MPdir        =
+MPinc        =
+MPlib        =
+
+# ----------------------------------------------------------------------
+# - HPCG includes / libraries / specifics ------------------------------
+# ----------------------------------------------------------------------
+HPCG_INCLUDES = -I$(INCdir) -I$(INCdir)/$(arch) $(MPinc)
+HPCG_LIBS     = -L/usr/riscv64-linux-gnu/lib
+
+# - Compile time options -----------------------------------------------
+# -DHPCG_NO_MPI            Define to disable MPI
+# -DHPCG_CONTIGUOUS_ARRAYS Define to have sparse matrix arrays long and contiguous
+# -DHPCG_DEBUG             Define to enable debugging output
+HPCG_OPTS     = -DHPCG_CONTIGUOUS_ARRAYS -DHPCG_NO_MPI -DHPCG_DEBUG
+HPCG_DEFS     = $(HPCG_OPTS) $(HPCG_INCLUDES)
+
+# ----------------------------------------------------------------------
+# - Compilers / linkers - Optimization flags ---------------------------
+# ----------------------------------------------------------------------
+CXX          = riscv64-linux-gnu-g++
+CXXFLAGS     = $(HPCG_DEFS) -O3 -ffast-math -fopenmp -fno-lto -march=rv64gcv -mabi=lp64d -flax-vector-conversions -fno-tree-slp-vectorize
+
+LINKER       = $(CXX)
+LINKFLAGS    = $(CXXFLAGS)
+
+ARCHIVER     = riscv64-linux-gnu-ar
+ARFLAGS      = r
+RANLIB       = riscv64-linux-gnu-ranlib
