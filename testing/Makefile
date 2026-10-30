@@ -68,7 +68,7 @@ $(BUILD_DIR):
 $(REFERENCE_OBJECTS): EXTRA_FLAGS = $(SCALAR_FLAGS)
 
 $(BUILD_DIR)/main.o: main.cpp Makefile | $(BUILD_DIR)
-	$(CXX) $(CPPFLAGS) $(INCLUDE_FLAGS) $(CXXFLAGS) $(COMMON_FLAGS) $(SCALAR_FLAGS) -MMD -MP -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(INCLUDE_FLAGS) $(CXXFLAGS) $(COMMON_FLAGS) $(SCALAR_FLAGS)  -fno-fast-math -MMD -MP -c $< -o $@
 
 $(BUILD_DIR)/%.o: ../src/%.cpp Makefile | $(BUILD_DIR)
 	$(CXX) $(CPPFLAGS) $(INCLUDE_FLAGS) $(CXXFLAGS) $(COMMON_FLAGS) $(EXTRA_FLAGS) -MMD -MP -c $< -o $@

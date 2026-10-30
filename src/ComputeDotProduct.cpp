@@ -131,16 +131,25 @@ int ComputeDotProduct(const local_int_t n, const Vector & x, const Vector & y,
             size_t local_data_num = end - start;
             const double *local_x = xv + start;
             
-            vfloat64m1_t v_acc = __riscv_vfmv_v_f_f64m1(0.0, __riscv_vsetvl_e64m1(local_data_num));
-            
-            for (size_t vl; local_data_num > 0; local_data_num -= vl) {
-                vl = __riscv_vsetvl_e64m1(local_data_num);
-                vfloat64m1_t v_x = __riscv_vle64_v_f64m1(local_x, vl);
-                v_acc = __riscv_vfmacc_vv_f64m1(v_acc, v_x, v_x, vl);
-                local_x += vl;
+            const size_t vlmax = __riscv_vsetvl_e64m1(-1);
+            vfloat64m1_t v_acc = __riscv_vfmv_v_f_f64m1(0.0, vlmax);
+
+            // v_acc only ever runs at VLMAX, so none of its elements is ever a tail element.
+            for (; local_data_num >= vlmax; local_data_num -= vlmax) {
+                vfloat64m1_t v_x = __riscv_vle64_v_f64m1(local_x, vlmax);
+                v_acc = __riscv_vfmacc_vv_f64m1(v_acc, v_x, v_x, vlmax);
+                local_x += vlmax;
             }
-            vfloat64m1_t v_zero = __riscv_vfmv_s_f_f64m1(0.0, __riscv_vsetvl_e64m1(1));
-            vfloat64m1_t v_res = __riscv_vfredusum_vs_f64m1_f64m1(v_acc, v_zero, __riscv_vsetvl_e64m1(-1));
+            vfloat64m1_t v_res = __riscv_vfmv_s_f_f64m1(0.0, __riscv_vsetvl_e64m1(1));
+            v_res = __riscv_vfredusum_vs_f64m1_f64m1(v_acc, v_res, vlmax);
+
+            // Fold the partial last strip in through the reduction's scalar operand.
+            if (local_data_num > 0) {
+                size_t vl = __riscv_vsetvl_e64m1(local_data_num);
+                vfloat64m1_t v_x = __riscv_vle64_v_f64m1(local_x, vl);
+                vfloat64m1_t v_prod = __riscv_vfmul_vv_f64m1(v_x, v_x, vl);
+                v_res = __riscv_vfredusum_vs_f64m1_f64m1(v_prod, v_res, vl);
+            }
             local_result += __riscv_vfmv_f_s_f64m1_f64(v_res);
         }
       }
@@ -162,18 +171,28 @@ int ComputeDotProduct(const local_int_t n, const Vector & x, const Vector & y,
             const double *local_x = xv + start;
             const double *local_y = yv + start;
             
-            vfloat64m1_t v_acc = __riscv_vfmv_v_f_f64m1(0.0, __riscv_vsetvl_e64m1(local_data_num));
-            
-            for (size_t vl; local_data_num > 0; local_data_num -= vl) {
-                vl = __riscv_vsetvl_e64m1(local_data_num);
+            const size_t vlmax = __riscv_vsetvl_e64m1(-1);
+            vfloat64m1_t v_acc = __riscv_vfmv_v_f_f64m1(0.0, vlmax);
+
+            // v_acc only ever runs at VLMAX, so none of its elements is ever a tail element.
+            for (; local_data_num >= vlmax; local_data_num -= vlmax) {
+                vfloat64m1_t v_x = __riscv_vle64_v_f64m1(local_x, vlmax);
+                vfloat64m1_t v_y = __riscv_vle64_v_f64m1(local_y, vlmax);
+                v_acc = __riscv_vfmacc_vv_f64m1(v_acc, v_x, v_y, vlmax);
+                local_x += vlmax;
+                local_y += vlmax;
+            }
+            vfloat64m1_t v_res = __riscv_vfmv_s_f_f64m1(0.0, __riscv_vsetvl_e64m1(1));
+            v_res = __riscv_vfredusum_vs_f64m1_f64m1(v_acc, v_res, vlmax);
+
+            // Fold the partial last strip in through the reduction's scalar operand.
+            if (local_data_num > 0) {
+                size_t vl = __riscv_vsetvl_e64m1(local_data_num);
                 vfloat64m1_t v_x = __riscv_vle64_v_f64m1(local_x, vl);
                 vfloat64m1_t v_y = __riscv_vle64_v_f64m1(local_y, vl);
-                v_acc = __riscv_vfmacc_vv_f64m1(v_acc, v_x, v_y, vl);
-                local_x += vl;
-                local_y += vl;
+                vfloat64m1_t v_prod = __riscv_vfmul_vv_f64m1(v_x, v_y, vl);
+                v_res = __riscv_vfredusum_vs_f64m1_f64m1(v_prod, v_res, vl);
             }
-            vfloat64m1_t v_zero = __riscv_vfmv_s_f_f64m1(0.0, __riscv_vsetvl_e64m1(1));
-            vfloat64m1_t v_res = __riscv_vfredusum_vs_f64m1_f64m1(v_acc, v_zero, __riscv_vsetvl_e64m1(-1));
             local_result += __riscv_vfmv_f_s_f64m1_f64(v_res);
         }
       }

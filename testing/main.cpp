@@ -138,6 +138,9 @@ int main(int argc, char **argv) {
   double dot_ref = 0.0, time_ref = 0.0;
   int dot_ref_status = ComputeDotProduct_ref(n, x, y, dot_ref, time_ref);
 
+  double dot_ref_eq = 0.0, time_ref_eq = 0.0;
+  int dot_ref_status_eq = ComputeDotProduct_ref(n, x, x, dot_ref_eq, time_ref_eq);
+
   ZeroVector(out_ref);
   int wax_ref_status = ComputeWAXPBY_ref(n, 0.3, x, -0.8, y, out_ref);
   const std::vector<double> wax_ref = snapshot(out_ref);
@@ -173,11 +176,22 @@ int main(int argc, char **argv) {
   double dot_vec = 0.0, time_vec = 0.0;
   #ifdef SDV_TRACING
     trace_enable();
-    trace_begin_region("DotProduct");
+    trace_begin_region("DotProduct (x!=y)");
   #endif
   int dot_vec_status = ComputeDotProduct(n, x, y, dot_vec, time_vec, optimized);
   #ifdef SDV_TRACING
-    trace_end_region("DotProduct");
+    trace_end_region("DotProduct (x!=y)");
+    trace_disable();
+  #endif
+
+  double dot_vec_eq = 0.0, time_vec_eq = 0.0;
+  #ifdef SDV_TRACING
+    trace_enable();
+    trace_begin_region("DotProduct (x==y)");
+  #endif
+  int dot_vec_status_eq = ComputeDotProduct(n, x, x, dot_vec_eq, time_vec_eq, optimized);
+  #ifdef SDV_TRACING
+    trace_end_region("DotProduct (x==y)");
     trace_disable();
   #endif
 
@@ -260,14 +274,15 @@ int main(int argc, char **argv) {
 
   // 4. COMPARE THE SAVED RESULTS.
   int failures = 0;
-  failures += !compare("DotProduct", {dot_ref}, {dot_vec}, dot_ref_status, dot_vec_status);
+  failures += !compare("DotProduct (x!=y)", {dot_ref}, {dot_vec}, dot_ref_status, dot_vec_status);
+  failures += !compare("DotProduct (x==y)", {dot_ref_eq}, {dot_vec_eq}, dot_ref_status_eq, dot_vec_status_eq);
   failures += !compare("WAXPBY", wax_ref, wax_vec, wax_ref_status, wax_vec_status);
   failures += !compare("SPMV", spmv_ref, spmv_vec, spmv_ref_status, spmv_vec_status);
   failures += !compare("SYMGS", symgs_ref, symgs_vec, symgs_ref_status, symgs_vec_status);
   failures += !compare("Restriction", restriction_ref, restriction_vec, restriction_ref_status, restriction_vec_status);
   failures += !compare("Prolongation", prolongation_ref, prolongation_vec, prolongation_ref_status, prolongation_vec_status);
   failures += !compare("MG", mg_ref, mg_vec, mg_ref_status, mg_vec_status);
-  std::cout << "7 comparisons, " << failures << " failures\n";
+  std::cout << "8 comparisons, " << failures << " failures\n";
 
   DeleteVector(x); DeleteVector(y);
   DeleteVector(out_ref); DeleteVector(out_vec);
